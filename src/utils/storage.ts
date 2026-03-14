@@ -17,7 +17,7 @@ const sessionStorage = {
         let index = keys.length
 
         while(index--) {
-            archive[keys[index]] = window.sessionStorage.getItem(keys[index])
+            archive[keys.at(index)!] = window.sessionStorage.getItem(keys.at(index)!)
         }
 
         return archive
