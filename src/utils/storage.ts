@@ -1,27 +1,23 @@
 const sessionStorage = {
-    save(key:string, value:string) {
+    save(key: string, value: string) {
         window.sessionStorage.setItem(key, value)
     },
-    load(key:string) {
+    load(key: string) {
         return window.sessionStorage.getItem(key)
     },
     clear() {
         window.sessionStorage.clear()
     },
     isEmpty() {
-        if (window.sessionStorage.length > 0) {
-            return false
-        } else {
-            return true
-        }
+        return window.sessionStorage.length === 0
     },
     loadAll() {
-        var archive = {} as any, // Notice change here
-        keys = Object.keys(window.sessionStorage),
-        i = keys.length
+        const archive: Record<string, string | null> = {}
+        const keys = Object.keys(window.sessionStorage)
+        let index = keys.length
 
-        while ( i-- ) {
-            archive[ keys[i] ] = window.sessionStorage.getItem( keys[i] )
+        while(index--) {
+            archive[keys[index]] = window.sessionStorage.getItem(keys[index])
         }
 
         return archive
@@ -35,47 +31,47 @@ const indexedDBStorage = {
         return new Promise<void>((resolve, reject) => {
             const request = window.indexedDB.open('studentDB', 1)
 
-            request.onerror = event => {
+            request.onerror = (event) => {
                 console.error("IndexedDB error:", event)
                 reject("Failed to open the database")
             }
 
-            request.onsuccess = event => {
+            request.onsuccess = (event) => {
                 indexedDBStorage.db = (event.target as IDBOpenDBRequest).result
                 resolve()
             }
 
-            request.onupgradeneeded = event => {
+            request.onupgradeneeded = (event) => {
                 const db = (event.target as IDBOpenDBRequest).result
                 db.createObjectStore('data')
             }
         })
     },
 
-    async save(key: string|number, value: any) {
-        if (!indexedDBStorage.db)
+    async save(key: string | number, value: unknown) {
+        if(!indexedDBStorage.db)
             await indexedDBStorage.initDB()
-        
+
         const transaction = indexedDBStorage.db!.transaction('data', 'readwrite')
         const objectStore = transaction.objectStore('data')
         objectStore.put(value, key)
     },
 
-    async load(key: string|number) {
-        if (!indexedDBStorage.db)
+    async load(key: string | number) {
+        if(!indexedDBStorage.db)
             await indexedDBStorage.initDB()
-        
+
         const transaction = indexedDBStorage.db!.transaction('data', 'readonly')
         const objectStore = transaction.objectStore('data')
         const request = objectStore.get(key)
-        
+
         return new Promise<string | undefined>((resolve, reject) => {
-            request.onsuccess = event => {
+            request.onsuccess = (event) => {
                 const data = (event.target as IDBRequest).result
                 resolve(data ? data.value : undefined)
             }
 
-            request.onerror = event => {
+            request.onerror = (event) => {
                 console.error("Error loading data from IndexedDB:", event)
                 reject("Failed to load data from IndexedDB")
             }
@@ -83,9 +79,9 @@ const indexedDBStorage = {
     },
 
     async clear() {
-        if (!indexedDBStorage.db)
+        if(!indexedDBStorage.db)
             await indexedDBStorage.initDB()
-        
+
         const transaction = indexedDBStorage.db!.transaction('data', 'readwrite')
         const objectStore = transaction.objectStore('data')
         objectStore.clear()
@@ -97,30 +93,29 @@ const indexedDBStorage = {
     },
 
     async loadAll() {
-        if (!indexedDBStorage.db)
+        if(!indexedDBStorage.db)
             await indexedDBStorage.initDB()
-        
+
         const transaction = indexedDBStorage.db!.transaction('data', 'readonly')
         const objectStore = transaction.objectStore('data')
         const request = objectStore.getAll()
 
         return new Promise<{ [key: string]: string }>((resolve, reject) => {
-            request.onsuccess = event => {
+            request.onsuccess = (event) => {
                 const data = (event.target as IDBRequest).result
                 const archive: { [key: string]: string } = {}
-                for (const item of data) {
+                for(const item of data) {
                     archive[item.key] = item.value
                 }
                 resolve(archive)
             }
 
-            request.onerror = event => {
+            request.onerror = (event) => {
                 console.error("Error loading all data from IndexedDB:", event)
                 reject("Failed to load all data from IndexedDB")
             }
-
         })
     }
 }
 
-export {sessionStorage, indexedDBStorage}
+export { sessionStorage, indexedDBStorage }
