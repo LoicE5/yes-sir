@@ -16,8 +16,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const { error } = await supabase.from('codes_history').select('code').limit(1)
 
+    res.setHeader('Cache-Control', 'no-store, must-revalidate')
+
     if(error)
-        return res.status(500).json({ message: `Keep DB awake : the cron job ran successfully, but the database returned an error` })
+        return res.status(500).json({ message: `Keep DB awake : cron job ran but the database returned an error` })
 
     return res.json({ message: `Keep DB awake : cron job successful` })
 }
