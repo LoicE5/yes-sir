@@ -39,7 +39,7 @@ export default function Teacher() {
     const [disabledButton, setDisabledButton] = useState(false)
     const [attendances, setAttendances] = useState<NewAttendance[]>([])
 
-    const oldCodeIntervalRef = useRef<number | NodeJS.Timeout>()
+    const oldCodeIntervalRef = useRef<number | NodeJS.Timeout | undefined>(undefined)
 
     function replaceSpacesNumbers(event: KeyboardEvent): void {
         const key = event.keyCode
@@ -129,6 +129,7 @@ export default function Teacher() {
 
         const code = getMostRecentCode()
         const limitDate = parseInt(sessionStorage.load(String(code)) ?? '')
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setClassroomCode(code)
         setCodeButtonText('Generate a new code')
 
