@@ -1,0 +1,22 @@
+meta {
+  name: Auto Archive - Unauthorized
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/api/cronjobs/auto_archive
+  body: none
+  auth: none
+}
+
+tests {
+  test("status is 401 without auth header", function() {
+    expect(res.status).to.equal(401)
+  })
+
+  test("response contains unauthorized message", function() {
+    expect(res.body).to.have.property("message")
+    expect(res.body.message).to.equal("Unauthorized")
+  })
+}

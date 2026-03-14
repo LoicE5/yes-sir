@@ -1,0 +1,21 @@
+meta {
+  name: Generate Code - Missing class_name
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/generate_code?time_given=5
+  body: none
+  auth: none
+}
+
+tests {
+  test("status is 400 when class_name is missing", function() {
+    expect(res.status).to.equal(400)
+  })
+
+  test("response contains error message", function() {
+    expect(res.body).to.have.property("message")
+  })
+}

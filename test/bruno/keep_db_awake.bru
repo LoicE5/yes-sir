@@ -1,0 +1,35 @@
+meta {
+  name: Keep DB Awake (Cron)
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/api/cronjobs/keep_db_awake
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{cronSecret}}
+}
+
+tests {
+  test("status is not 401 when correct auth provided", function() {
+    expect(res.status).to.not.equal(401)
+  })
+
+  test("status is 200 or 500 (authenticated request)", function() {
+    expect([200, 500]).to.include(res.status)
+  })
+
+  test("response contains message field", function() {
+    expect(res.body).to.have.property("message")
+  })
+
+  test("message contains keep db awake text on success", function() {
+    if (res.status === 200) {
+      expect(res.body.message).to.include("Keep DB awake")
+    }
+  })
+}
