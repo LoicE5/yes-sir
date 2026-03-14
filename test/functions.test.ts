@@ -1,6 +1,6 @@
-import { describe, it, expect, mock, beforeEach, afterEach } from "bun:test"
-import { calculateTimer, casualHash, randomInt, isVpnFromIpInfo, isIpv6, hasNumber } from "../utils/functions"
-import { IpQualityScoreResponse } from "../utils/interfaces"
+import { describe, it, expect } from "bun:test"
+import { calculateTimer, casualHash, randomInt, isVpnFromIpInfo, isIpv6, hasNumber } from "../src/utils/functions"
+import { IpQualityScoreResponse } from "../src/utils/interfaces"
 
 // ---------------------------------------------------------------------------
 // calculateTimer
