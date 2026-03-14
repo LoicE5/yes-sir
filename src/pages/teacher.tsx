@@ -37,7 +37,7 @@ export default function Teacher() {
     const [timer, setTimer] = useState("")
     const [codeButtonText, setCodeButtonText] = useState('Generate code')
     const [disabledButton, setDisabledButton] = useState(false)
-    const [attendances, setAttendances] = useState([] as NewAttendance[])
+    const [attendances, setAttendances] = useState<NewAttendance[]>([])
 
     const oldCodeIntervalRef = useRef<number | NodeJS.Timeout>()
 
@@ -128,7 +128,7 @@ export default function Teacher() {
             return
 
         const code = getMostRecentCode()
-        const limitDate = parseInt(sessionStorage.load(String(code)) as any)
+        const limitDate = parseInt(sessionStorage.load(String(code)) ?? '')
         setClassroomCode(code)
         setCodeButtonText('Generate a new code')
 

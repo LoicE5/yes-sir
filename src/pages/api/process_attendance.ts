@@ -85,10 +85,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             } satisfies Response)
 
         const ip = req.socket.remoteAddress as string
-        const ipInfo = await fetchIpQualityInfo(ip) as IpQualityScoreResponse
+        const ipInfoResult = await fetchIpQualityInfo(ip)
         const alreadyRegistered = await isIpAlreadyRegistered(ip, existingCode.code)
         const isIpv6Address = isIpv6(ip)
-        const isVpn = isVpnFromIpInfo(ipInfo)
+        const isVpn = ipInfoResult ? isVpnFromIpInfo(ipInfoResult) : false
 
         if(
             (isIpv6Address && alreadyRegistered) ||
