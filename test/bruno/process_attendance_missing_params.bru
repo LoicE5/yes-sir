@@ -1,0 +1,21 @@
+meta {
+  name: Process Attendance - Missing Params
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/process_attendance
+  body: none
+  auth: none
+}
+
+tests {
+  test("status is 400 when code and name are missing", function() {
+    expect(res.status).to.equal(400)
+  })
+
+  test("response contains error message", function() {
+    expect(res.body).to.have.property("message")
+  })
+}

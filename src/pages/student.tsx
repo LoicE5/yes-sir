@@ -21,7 +21,7 @@ export default function Student() {
     async function handleForm(event: FormEvent): Promise<void> {
         event.preventDefault()
 
-        if (await indexedDBStorage.load(classroomCode))
+        if(await indexedDBStorage.load(classroomCode))
             return setMessageContent(`You already submitted an attendance for this code.`)
 
         setLoaderVisibility(true)
@@ -31,22 +31,22 @@ export default function Student() {
             method: 'POST'
         })
 
-        if (!result.ok && result.status !== 403) {
+        if(!result.ok && result.status !== 403) {
             setLoaderVisibility(false)
             return alert(`There have been an issue while submitting your attendance. Error code : ${result.status}. Message : ${await result.text()}`)
         }
 
         const data = await result.json()
 
-        if (data.empty) {
+        if(data.empty) {
             setMessageContent(`The room does not exist.`)
             setLoaderVisibility(false)
             return
         }
 
-        if (data.denied) {
+        if(data.denied) {
             setLoaderVisibility(false)
-            if (Date.now() > data.js_expiry)
+            if(Date.now() > data.js_expiry)
                 return setMessageContent(`You have no time left to confirm your attendance.`)
             else
                 return setMessageContent(`You have already sent a submission for this code.`)
@@ -57,7 +57,7 @@ export default function Student() {
 
         setLoaderVisibility(false)
 
-        if (oldCodeInterval)
+        if(oldCodeInterval)
             clearInterval(oldCodeInterval)
 
         setOldCodeInterval(
@@ -78,7 +78,7 @@ export default function Student() {
                     id="name-input"
                     maxLength={50}
                     required
-                    onChange={event => setName(event.target.value)}
+                    onChange={(event) => setName(event.target.value)}
                 />
                 <input
                     type="number"
@@ -87,9 +87,9 @@ export default function Student() {
                     min={classroomCodeProps.min}
                     max={classroomCodeProps.max}
                     value={classroomCode >= 0 ? classroomCode : ''}
-                    onKeyPress={event => onlyInt(event as any)}
-                    onKeyUp={event => checkMinMax((event.target as any).value, classroomCodeProps.min, classroomCodeProps.max, setClassroomCode)}
-                    onChange={event => setClassroomCode(parseInt(event.target.value))}
+                    onKeyPress={(event) => onlyInt(event as any)}
+                    onKeyUp={(event) => checkMinMax((event.target as any).value, classroomCodeProps.min, classroomCodeProps.max, setClassroomCode)}
+                    onChange={(event) => setClassroomCode(parseInt(event.target.value))}
                     required
                 />
                 <button

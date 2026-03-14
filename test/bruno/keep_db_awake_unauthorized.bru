@@ -1,0 +1,22 @@
+meta {
+  name: Keep DB Awake - Unauthorized
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{baseUrl}}/api/cronjobs/keep_db_awake
+  body: none
+  auth: none
+}
+
+tests {
+  test("status is 401 without auth header", function() {
+    expect(res.status).to.equal(401)
+  })
+
+  test("response contains unauthorized message", function() {
+    expect(res.body).to.have.property("message")
+    expect(res.body.message).to.equal("Unauthorized")
+  })
+}

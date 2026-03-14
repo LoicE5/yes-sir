@@ -1,0 +1,46 @@
+meta {
+  name: Process Attendance
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/process_attendance?code=123456&name=JohnDoe
+  body: none
+  auth: none
+}
+
+tests {
+  test("status is 2xx or 4xx (not server error)", function() {
+    expect(res.status).to.not.equal(500)
+  })
+
+  test("response has required fields when code not found (404)", function() {
+    if (res.status === 404) {
+      expect(res.body).to.have.property("empty")
+      expect(res.body.empty).to.equal(true)
+      expect(res.body).to.have.property("denied")
+      expect(res.body).to.have.property("hashed")
+    }
+  })
+
+  test("response has required fields on success (201)", function() {
+    if (res.status === 201) {
+      expect(res.body).to.have.property("empty")
+      expect(res.body).to.have.property("denied")
+      expect(res.body).to.have.property("hashed")
+      expect(res.body).to.have.property("ip")
+      expect(res.body).to.have.property("is_ipv6")
+      expect(res.body).to.have.property("is_vpn")
+      expect(res.body).to.have.property("is_already_registered")
+      expect(res.body).to.have.property("js_expiry")
+    }
+  })
+
+  test("ip field is hashed (not raw IP) on success", function() {
+    if (res.status === 201) {
+      expect(res.body.hashed).to.equal(true)
+      expect(res.body.ip).to.match(/^[0-9a-f]{40}$/)
+    }
+  })
+}

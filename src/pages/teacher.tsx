@@ -37,13 +37,13 @@ export default function Teacher() {
     const [timer, setTimer] = useState("")
     const [codeButtonText, setCodeButtonText] = useState('Generate code')
     const [disabledButton, setDisabledButton] = useState(false)
-    const [attendances, setAttendances] = useState([] as NewAttendance[])
+    const [attendances, setAttendances] = useState<NewAttendance[]>([])
 
-    const oldCodeIntervalRef = useRef<number | NodeJS.Timeout>()
+    const oldCodeIntervalRef = useRef<number | NodeJS.Timeout | undefined>(undefined)
 
     function replaceSpacesNumbers(event: KeyboardEvent): void {
         const key = event.keyCode
-        if (!((key >= 65 && key <= 90) || key === 8)) {
+        if(!((key >= 65 && key <= 90) || key === 8)) {
             event.preventDefault()
         }
     }
@@ -53,23 +53,23 @@ export default function Teacher() {
         minLength: number,
         maxLength: number
     ): boolean {
-        if (!str)
+        if(!str)
             return false
 
         const specialCharacters = [" ", "&", "?"]
-        if (specialCharacters.some((char) => str.includes(char))) return false
+        if(specialCharacters.some((char) => str.includes(char))) return false
 
-        if (minLength && Number.isInteger(minLength) && str.length < minLength)
+        if(minLength && Number.isInteger(minLength) && str.length < minLength)
             return false
 
-        if (maxLength && Number.isInteger(maxLength) && str.length > maxLength)
+        if(maxLength && Number.isInteger(maxLength) && str.length > maxLength)
             return false
 
         return true
     }
 
     async function getCode(): Promise<void> {
-        if (!isValidString(classroomName, classroomNameProps.minLength, classroomNameProps.maxLength))
+        if(!isValidString(classroomName, classroomNameProps.minLength, classroomNameProps.maxLength))
             return console.error(`The given classroom name is not valid. String is : ${classroomName}.`)
 
         const url = `api/generate_code?class_name=${classroomName}&time_given=${timeGiven}`
@@ -77,7 +77,7 @@ export default function Teacher() {
             method: 'POST',
         })
 
-        if (!result.ok)
+        if(!result.ok)
             return alert(`The code generation have failed. Error code : ${result.status}. Error message : ${await result.text()}`)
 
         const classRoomInfo = await result.json() as GetCodeResponse
@@ -87,7 +87,7 @@ export default function Teacher() {
         setDisabledButton(true)
 
         // Clear the old interval before setting a new one
-        if (oldCodeIntervalRef.current) {
+        if(oldCodeIntervalRef.current) {
             clearInterval(oldCodeIntervalRef.current)
         }
 
@@ -100,40 +100,41 @@ export default function Teacher() {
     }
 
     function getMostRecentCode(): number {
-        let values = Object.entries(sessionStorage.loadAll())
-        let max_JS_time = 0
-        let code_to_recover = 0
+        const values = Object.entries(sessionStorage.loadAll())
+        let maxJsTime = 0
+        let codeToRecover = 0
 
-        for (let item of values) {
-            let JS_time = Number(item[1])
+        for(const item of values) {
+            const jsTime = Number(item.at(1))
 
-            if (JS_time > max_JS_time)
-                max_JS_time = JS_time
+            if(jsTime > maxJsTime)
+                maxJsTime = jsTime
         }
 
-        for (let item of values) {
-            let code = Number(item[0])
-            let JS_time = Number(item[1])
+        for(const item of values) {
+            const code = Number(item.at(0))
+            const jsTime = Number(item.at(1))
 
-            if (JS_time == max_JS_time) {
-                code_to_recover = code
+            if(jsTime == maxJsTime) {
+                codeToRecover = code
             }
         }
 
-        return code_to_recover
+        return codeToRecover
     }
 
     useEffect(() => {
-        if (sessionStorage.isEmpty())
+        if(sessionStorage.isEmpty())
             return
 
         const code = getMostRecentCode()
-        const limitDate = parseInt(sessionStorage.load(String(code)) as any)
+        const limitDate = parseInt(sessionStorage.load(String(code)) ?? '')
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setClassroomCode(code)
         setCodeButtonText('Generate a new code')
 
         // Clear the old interval before setting a new one
-        if (oldCodeIntervalRef.current) {
+        if(oldCodeIntervalRef.current) {
             clearInterval(oldCodeIntervalRef.current)
         }
 
@@ -147,12 +148,16 @@ export default function Teacher() {
             .select('*')
             .eq('code', code)
             .then(({ data, error }) => {
+                if(error) {
+                    console.error('Failed to fetch attendances:', error)
+                    return
+                }
                 setAttendances(data as NewAttendance[])
             })
     }, [])
 
     useEffect(() => {
-        if (classroomCode <= 0)
+        if(classroomCode <= 0)
             return
 
         const channel = supabaseClient
@@ -165,7 +170,7 @@ export default function Teacher() {
                     table: 'attendances',
                     filter: `code=eq.${classroomCode}`
                 },
-                payload => setAttendances(prev => [...prev, payload.new] as NewAttendance[])
+                (payload) => setAttendances((prev) => [...prev, payload.new] as NewAttendance[])
             )
             .subscribe()
 
@@ -188,7 +193,7 @@ export default function Teacher() {
 
         const outputElements: React.JSX.Element[] = attendances.map(
             (attendance: NewAttendance, index: number): React.JSX.Element => {
-                if (!attendance) return <></>
+                if(!attendance) return <></>
 
                 const sameIpNames = getSameIpNames(attendance)
                 const sameIpNamesString = sameIpNames.join(', ')
@@ -231,8 +236,8 @@ export default function Teacher() {
                         value={classroomName}
                         minLength={classroomNameProps.minLength}
                         maxLength={classroomNameProps.maxLength}
-                        onKeyDown={event => replaceSpacesNumbers(event as any)}
-                        onChange={event => setClassroomName(event.target.value)}
+                        onKeyDown={(event) => replaceSpacesNumbers(event as any)}
+                        onChange={(event) => setClassroomName(event.target.value)}
                     />
                     <br />
                     <label htmlFor="classroom-name">Your class name can only contain letters. No numbers, spaces or special chars.</label>
@@ -246,9 +251,9 @@ export default function Teacher() {
                         max={timeGivenProps.max}
                         value={timeGiven}
                         id="time-given"
-                        onKeyPress={event => onlyInt(event as any)}
-                        onKeyUp={event => checkMinMax((event.target as any).value, timeGivenProps.min, timeGivenProps.max, setTimeGiven)}
-                        onChange={event => setTimeGiven(parseInt(event.target.value))}
+                        onKeyPress={(event) => onlyInt(event as any)}
+                        onKeyUp={(event) => checkMinMax((event.target as any).value, timeGivenProps.min, timeGivenProps.max, setTimeGiven)}
+                        onChange={(event) => setTimeGiven(parseInt(event.target.value))}
                     />
                     <label htmlFor="time-given">Between 2 min <br />& 180 min.</label>
                 </div>

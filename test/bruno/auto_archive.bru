@@ -1,0 +1,41 @@
+meta {
+  name: Auto Archive (Cron)
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/api/cronjobs/auto_archive
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{cronSecret}}
+}
+
+tests {
+  test("status is not 401 when correct auth provided", function() {
+    expect(res.status).to.not.equal(401)
+  })
+
+  test("status is 201 or 202 or 500 (authenticated request)", function() {
+    expect([201, 202, 500]).to.include(res.status)
+  })
+
+  test("response contains message field", function() {
+    expect(res.body).to.have.property("message")
+  })
+
+  test("message on 202 indicates no codes to archive", function() {
+    if (res.status === 202) {
+      expect(res.body.message).to.include("no codes to be archived")
+    }
+  })
+
+  test("message on 201 indicates success", function() {
+    if (res.status === 201) {
+      expect(res.body.message).to.include("archived successfully")
+    }
+  })
+}

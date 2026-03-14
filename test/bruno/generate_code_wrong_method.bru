@@ -1,0 +1,22 @@
+meta {
+  name: Generate Code - Wrong Method (GET)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/generate_code?class_name=MathClass&time_given=5
+  body: none
+  auth: none
+}
+
+tests {
+  test("status is 405 for GET method", function() {
+    expect(res.status).to.equal(405)
+  })
+
+  test("response contains method not allowed message", function() {
+    expect(res.body).to.have.property("message")
+    expect(res.body.message).to.include("not allowed")
+  })
+}
