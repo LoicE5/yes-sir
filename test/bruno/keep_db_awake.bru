@@ -36,4 +36,23 @@ tests {
       expect(res.body.message).to.include("Keep DB awake")
     }
   })
+  
+  test("response contains results object on authenticated request", function() {
+    if (res.status !== 401) {
+      expect(res.body).to.have.property("results")
+      expect(res.body.results).to.have.property("anon_read")
+      expect(res.body.results).to.have.property("anon_write")
+      expect(res.body.results).to.have.property("service_read")
+      expect(res.body.results).to.have.property("service_write")
+    }
+  })
+  
+  test("all results are ok on success", function() {
+    if (res.status === 200 && res.body.results) {
+      expect(res.body.results.anon_read).to.equal("ok")
+      expect(res.body.results.anon_write).to.equal("ok")
+      expect(res.body.results.service_read).to.equal("ok")
+      expect(res.body.results.service_write).to.equal("ok")
+    }
+  })
 }
