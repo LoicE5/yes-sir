@@ -2,7 +2,7 @@
     "crons": [
         {
             "path": "/api/cronjobs/keep_db_awake",
-            "schedule": "0 8,14,20 * * *"
+            "schedule": "0 14 * * *"
         },
         {
             "path": "/api/cronjobs/auto_archive",
