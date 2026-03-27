@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js"
 
 const TABLE = 'keep_db_awake'
 const CLEANUP_OLDER_THAN_DAYS = 7
+const MS_PER_DAY = 86_400_000
 
 type DatabaseOperation = PromiseSettledResult<{ error: { message: string } | null }>
 
@@ -11,7 +12,8 @@ function opStatus(settled: DatabaseOperation): 'ok' | 'error' {
 }
 
 function opErrorMsg(settled: DatabaseOperation): string | null {
-    if (settled.status === 'rejected') return String(settled.reason)
+    if (settled.status === 'rejected')
+        return String(settled.reason)
     return settled.value.error?.message ?? null
 }
 
@@ -39,7 +41,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     ])) as DatabaseOperation[]
 
     // Cleanup records older than CLEANUP_OLDER_THAN_DAYS days (fire-and-forget, does not affect response)
-    const cutoff = new Date(Date.now() - CLEANUP_OLDER_THAN_DAYS * 86_400_000).toISOString()
+    const cutoff = new Date(Date.now() - CLEANUP_OLDER_THAN_DAYS * MS_PER_DAY).toISOString()
     void serviceClient.from(TABLE).delete().lt('pinged_at', cutoff)
 
     res.setHeader('Cache-Control', 'no-store, must-revalidate')
