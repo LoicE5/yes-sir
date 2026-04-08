@@ -2,7 +2,7 @@
 
 Yes Sir is a web application built to illustrate a friend's group startup idea and pitch at ESSEC Business School (France). It enhances attendance checks in classes using a one-time code system that both teachers and students can use.
 
-Built with **Next.js**, **React**, and **Supabase**, it features three pages:
+Built with **Next.js**, **Bun** and **Supabase**, it features three pages:
 
 - **Home** — The welcome page where the user selects their role (student or teacher).
 - **Teacher** — The teacher generates a one-time unique code for their class (OTP-inspired), valid for a configurable duration.
