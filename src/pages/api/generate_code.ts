@@ -77,8 +77,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         } satisfies Response)
 
     } catch(error: unknown) {
-        const msg = error instanceof Error ? error.message : String(error)
-        console.error('generate_code failed:', msg, error)
+        const message = error instanceof Error ? error.message : String(error)
+        console.error('generate_code failed:', message, error)
         res.status(500).json({ message: 'There have been an error processing your request.' })
     }
 }

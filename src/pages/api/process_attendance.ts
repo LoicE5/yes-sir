@@ -28,6 +28,11 @@ interface DbCodesModel {
     js_expiry: number
 }
 
+interface CodesQueryResult {
+    data: Pick<DbCodesModel, 'code' | 'js_expiry'>[]
+    error: PostgrestError | null
+}
+
 function createSupabase() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
     const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -68,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             .from('codes')
             .select('code, js_expiry')
             .in('code', [cleanCode])
-            .limit(1) as unknown as { data: Pick<DbCodesModel, 'code' | 'js_expiry'>[], error: PostgrestError | null }
+            .limit(1) as unknown as CodesQueryResult
 
         const existingCode = existingCodeList.at(0)
 
@@ -135,8 +140,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         } satisfies Response)
 
     } catch(error: unknown) {
-        const msg = error instanceof Error ? error.message : String(error)
-        console.error('process_attendance failed:', msg, error)
+        const message = error instanceof Error ? error.message : String(error)
+        console.error('process_attendance failed:', message, error)
         res.status(500).json({ message: 'There have been an error processing your request.' })
     }
 }
