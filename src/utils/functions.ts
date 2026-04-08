@@ -53,9 +53,7 @@ export function isIpv6(ip: string): boolean {
 }
 
 export function casualHash(input: string): string {
-    const hash = crypto.createHash('ripemd160')
-    hash.update(input)
-    return hash.digest('hex')
+    return crypto.createHash('sha256').update(input).digest('hex')
 }
 
 export function isVpnFromIpInfo(ipQualityInfo: IpQualityScoreResponse): boolean {
@@ -69,4 +67,13 @@ export function isVpnFromIpInfo(ipQualityInfo: IpQualityScoreResponse): boolean 
 
 export function randomInt(min: number, max: number): number {
     return Math.floor((Math.random() * (max + 1 - min)) + min)
+}
+
+export function getClientIp(req: { headers: Record<string, string | string[] | undefined>, socket?: { remoteAddress?: string } }): string {
+    const forwarded = req.headers['x-forwarded-for']
+    if(typeof forwarded === 'string' && forwarded.length > 0)
+        return forwarded.split(',')[0].trim()
+    if(Array.isArray(forwarded) && forwarded.length > 0)
+        return forwarded[0]
+    return req.socket?.remoteAddress ?? ''
 }

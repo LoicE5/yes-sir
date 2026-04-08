@@ -1,5 +1,5 @@
 import { describe, it, expect } from "bun:test"
-import { calculateTimer, casualHash, randomInt, isVpnFromIpInfo, isIpv6, hasNumber } from "../src/utils/functions"
+import { calculateTimer, casualHash, getClientIp, randomInt, isVpnFromIpInfo, isIpv6, hasNumber } from "../src/utils/functions"
 import { IpQualityScoreResponse } from "../src/utils/interfaces"
 
 // ---------------------------------------------------------------------------
@@ -74,24 +74,24 @@ describe("casualHash", () => {
         expect(casualHash("192.168.1.1")).not.toBe(casualHash("192.168.1.2"))
     })
 
-    it("returns 40-character hex string (RIPEMD-160 = 160 bits = 40 hex chars)", () => {
+    it("returns 64-character hex string (SHA-256 = 256 bits = 64 hex chars)", () => {
         const result = casualHash("any input")
-        expect(result.length).toBe(40)
+        expect(result.length).toBe(64)
     })
 
     it("handles empty string input", () => {
         const result = casualHash("")
-        expect(result.length).toBe(40)
+        expect(result.length).toBe(64)
     })
 
     it("handles unicode characters", () => {
         const result = casualHash("日本語テスト")
-        expect(result).toMatch(/^[0-9a-f]{40}$/)
+        expect(result).toMatch(/^[0-9a-f]{64}$/)
     })
 
     it("hashes IPv6 addresses correctly", () => {
         const result = casualHash("2001:db8::1")
-        expect(result).toMatch(/^[0-9a-f]{40}$/)
+        expect(result).toMatch(/^[0-9a-f]{64}$/)
     })
 })
 
@@ -279,6 +279,52 @@ describe("hasNumber", () => {
 
     it("returns false for special characters without digits", () => {
         expect(hasNumber("!@#$%")).toBe(false)
+    })
+})
+
+// ---------------------------------------------------------------------------
+// getClientIp
+// ---------------------------------------------------------------------------
+
+describe("getClientIp", () => {
+    it("returns first IP from x-forwarded-for string", () => {
+        const req = { headers: { 'x-forwarded-for': '1.2.3.4, 5.6.7.8' }, socket: { remoteAddress: '127.0.0.1' } }
+        expect(getClientIp(req)).toBe('1.2.3.4')
+    })
+
+    it("returns single x-forwarded-for value", () => {
+        const req = { headers: { 'x-forwarded-for': '10.0.0.1' }, socket: { remoteAddress: '127.0.0.1' } }
+        expect(getClientIp(req)).toBe('10.0.0.1')
+    })
+
+    it("returns first entry from x-forwarded-for array", () => {
+        const req = { headers: { 'x-forwarded-for': ['1.2.3.4', '5.6.7.8'] as unknown as string }, socket: { remoteAddress: '127.0.0.1' } }
+        expect(getClientIp(req)).toBe('1.2.3.4')
+    })
+
+    it("falls back to socket.remoteAddress when no x-forwarded-for", () => {
+        const req = { headers: {}, socket: { remoteAddress: '192.168.1.1' } }
+        expect(getClientIp(req)).toBe('192.168.1.1')
+    })
+
+    it("returns empty string when no IP source available", () => {
+        const req = { headers: {}, socket: {} }
+        expect(getClientIp(req)).toBe('')
+    })
+
+    it("returns empty string when socket is undefined", () => {
+        const req = { headers: {} }
+        expect(getClientIp(req)).toBe('')
+    })
+
+    it("trims whitespace from x-forwarded-for", () => {
+        const req = { headers: { 'x-forwarded-for': '  1.2.3.4  , 5.6.7.8' }, socket: {} }
+        expect(getClientIp(req)).toBe('1.2.3.4')
+    })
+
+    it("ignores empty x-forwarded-for string", () => {
+        const req = { headers: { 'x-forwarded-for': '' }, socket: { remoteAddress: '10.0.0.1' } }
+        expect(getClientIp(req)).toBe('10.0.0.1')
     })
 })
 
