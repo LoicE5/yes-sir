@@ -30,3 +30,8 @@ export interface IpQualityScoreResponse {
 export interface BaseResponse {
     message?:string
 }
+
+export interface MinimalRequest {
+    headers: Record<string, string | string[] | undefined>
+    socket?: { remoteAddress?: string }
+}

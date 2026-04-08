@@ -1,4 +1,4 @@
-import { casualHash, fetchIpQualityInfo, isIpv6, isVpnFromIpInfo } from "@/utils/functions"
+import { casualHash, fetchIpQualityInfo, getClientIp, isIpv6, isVpnFromIpInfo } from "@/utils/functions"
 import { BaseResponse, IpQualityScoreResponse } from "@/utils/interfaces"
 import { createClient, PostgrestError } from "@supabase/supabase-js"
 import { NextApiRequest, NextApiResponse } from "next"
@@ -26,6 +26,11 @@ interface DbCodesModel {
     class_name: string
     js_time: number
     js_expiry: number
+}
+
+interface CodesQueryResult {
+    data: Pick<DbCodesModel, 'code' | 'js_expiry'>[]
+    error: PostgrestError | null
 }
 
 function createSupabase() {
@@ -68,7 +73,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
             .from('codes')
             .select('code, js_expiry')
             .in('code', [cleanCode])
-            .limit(1) as unknown as { data: DbCodesModel[], error: PostgrestError | null }
+            .limit(1) as unknown as CodesQueryResult
 
         const existingCode = existingCodeList.at(0)
 
@@ -84,7 +89,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
                 js_expiry: 0
             } satisfies Response)
 
-        const ip = req.socket.remoteAddress as string
+        const ip = getClientIp(req)
+        if(!ip)
+            return res.status(500).json({ message: 'Could not determine client IP.' })
+
         const ipInfoResult = await fetchIpQualityInfo(ip)
         const alreadyRegistered = await isIpAlreadyRegistered(ip, existingCode.code)
         const isIpv6Address = isIpv6(ip)
@@ -132,7 +140,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
         } satisfies Response)
 
     } catch(error: unknown) {
-        console.error(error)
+        const message = error instanceof Error ? error.message : String(error)
+        console.error('process_attendance failed:', message, error)
         res.status(500).json({ message: 'There have been an error processing your request.' })
     }
 }
